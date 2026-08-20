@@ -42,5 +42,10 @@
     "portable": {
       "artifactName": "三花猫桌宠-${version}-Windows-${arch}.exe"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DRAGONINWAVE/calico-pixel-desktop-pet.git",
+    "directory": "."
   }
 }
