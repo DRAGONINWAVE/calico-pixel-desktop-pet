@@ -1,0 +1,46 @@
+{
+  "name": "calico-pixel-desktop-pet",
+  "version": "1.6.0",
+  "description": "A transparent, always-on-top pixel-art calico desktop pet for Windows.",
+  "main": "src/main.js",
+  "author": "Manus AI",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --enable-logging",
+    "sprites": "python3 tools/generate_sprites.py",
+    "build:win": "electron-builder --win portable",
+    "build:dir": "electron-builder --win dir"
+  },
+  "devDependencies": {
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.manus.calico-pixel-desktop-pet",
+    "productName": "三花猫桌宠",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "assets/calico-icon.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "三花猫桌宠-${version}-Windows-${arch}.exe"
+    }
+  }
+}

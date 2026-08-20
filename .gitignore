@@ -1,0 +1,15 @@
+# JavaScript dependencies
+node_modules/
+
+# Build and release outputs
+release/
+build/
+*.exe
+*.zip
+
+# Generated local caches
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db
+npm-debug.log*

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>三花猫桌宠</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main id="pet" aria-label="三花猫桌宠">
+      <section id="monitor" class="monitor" aria-label="系统实时监测">
+        <header class="monitor-head"><span>系统监测</span><span class="live-dot">● LIVE</span></header>
+        <div class="metric-row"><span class="metric-name">CPU</span><span id="cpu-value" class="metric-value">--%</span><span class="bar"><i id="cpu-bar"></i></span></div>
+        <div class="metric-row"><span class="metric-name">RAM</span><span id="ram-value" class="metric-value">-- / -- GB</span><span class="bar ram"><i id="ram-bar"></i></span></div>
+        <div class="metric-row"><span id="disk-name" class="metric-name">DISK</span><span id="disk-value" class="metric-value">-- / -- GB</span><span class="bar disk"><i id="disk-bar"></i></span></div>
+        <div class="metric-bottom"><span id="process-value">进程 --</span><span id="uptime-value">运行 --</span></div>
+      </section>
+      <div id="speech" class="speech" aria-live="polite"></div>
+      <div id="effects" aria-hidden="true"></div>
+      <canvas id="cat" width="64" height="64" aria-label="像素三花猫"></canvas>
+    </main>
+    <script src="../assets/sprite-map.js"></script>
+    <script src="renderer.js"></script>
+  </body>
+</html>
