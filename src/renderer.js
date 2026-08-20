@@ -9,9 +9,7 @@
     ramValue: document.querySelector('#ram-value'),
     cpuBar: document.querySelector('#cpu-bar'),
     ramBar: document.querySelector('#ram-bar'),
-    diskName: document.querySelector('#disk-name'),
-    diskValue: document.querySelector('#disk-value'),
-    diskBar: document.querySelector('#disk-bar'),
+    diskList: document.querySelector('#disk-list'),
     processValue: document.querySelector('#process-value'),
     uptimeValue: document.querySelector('#uptime-value'),
   };
@@ -76,6 +74,7 @@
 
   class SystemMonitor {
     constructor() {
+      this.windowHeight = null;
       this.refresh();
       this.timer = setInterval(() => this.refresh(), 1500);
     }
@@ -89,34 +88,78 @@
       return `${minutes}分`;
     }
 
+    formatRate(bytesPerSecond) {
+      const value = Math.max(0, Number(bytesPerSecond) || 0);
+      if (value < 1024) return '0 KB/s';
+      const units = ['KB/s', 'MB/s', 'GB/s'];
+      let scaled = value / 1024;
+      let index = 0;
+      while (scaled >= 1024 && index < units.length - 1) {
+        scaled /= 1024;
+        index += 1;
+      }
+      return `${scaled >= 100 ? scaled.toFixed(0) : scaled.toFixed(1)} ${units[index]}`;
+    }
+
+    escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+    }
+
+    ringColor(percent) {
+      // 120° is green; 0° is red. Yellow/orange naturally appears in the middle.
+      const hue = Math.max(0, Math.min(120, Math.round(120 - percent * 1.2)));
+      return `hsl(${hue} 68% 46%)`;
+    }
+
+    renderDisks(disks) {
+      if (!disks.length) {
+        monitorUi.diskList.innerHTML = '<div class="monitor-empty">未检测到可用磁盘</div>';
+      } else {
+        monitorUi.diskList.innerHTML = disks.map((disk) => {
+          const percent = Math.max(0, Math.min(100, Number(disk.percent) || 0));
+          const color = this.ringColor(percent);
+          const drive = this.escapeHtml(disk.drive);
+          const label = this.escapeHtml(disk.label || (disk.removable ? '外接盘' : '本地盘'));
+          return `<article class="disk-card">
+            <div class="disk-left">
+              <div class="disk-name-wrap"><div class="disk-name">${drive}</div><div class="disk-label">${label}</div></div>
+              <div class="disk-ring" style="--percent:${percent};--ring-color:${color}"><span class="disk-percent">${percent}%</span></div>
+            </div>
+            <div class="disk-meta">
+              <div class="disk-capacity">${disk.usedGb} / ${disk.totalGb} GB</div>
+              <div class="disk-speed read"><span class="speed-label">R</span><span>${this.formatRate(disk.readBps)}</span></div>
+              <div class="disk-speed write"><span class="speed-label">W</span><span>${this.formatRate(disk.writeBps)}</span></div>
+            </div>
+          </article>`;
+        }).join('');
+      }
+      // Grow upward from the taskbar; more than five cards scroll inside the monitor.
+      const requestedHeight = Math.min(920, Math.max(420, 360 + disks.length * 100));
+      if (this.windowHeight !== requestedHeight) {
+        this.windowHeight = requestedHeight;
+        window.petAPI.setMonitorHeight(requestedHeight).catch(() => {});
+      }
+    }
+
     refresh() {
       window.petAPI.getSystemMetrics()
         .then((metrics) => {
           const cpu = Math.max(0, Math.min(100, Number(metrics.cpu) || 0));
           const memory = Math.max(0, Math.min(100, Number(metrics.memoryPercent) || 0));
           monitorUi.cpuValue.textContent = `${cpu}%`;
-          monitorUi.ramValue.textContent = `${metrics.memoryUsedGb} / ${metrics.memoryTotalGb} GB`;
+          monitorUi.ramValue.textContent = `${memory}%`;
           monitorUi.cpuBar.style.width = `${cpu}%`;
           monitorUi.ramBar.style.width = `${memory}%`;
-          if (metrics.disk) {
-            const diskPercent = Math.max(0, Math.min(100, Number(metrics.disk.percent) || 0));
-            monitorUi.diskName.textContent = metrics.disk.drive || 'DISK';
-            monitorUi.diskValue.textContent = `${metrics.disk.usedGb} / ${metrics.disk.totalGb} GB`;
-            monitorUi.diskBar.style.width = `${diskPercent}%`;
-          } else {
-            monitorUi.diskName.textContent = 'DISK';
-            monitorUi.diskValue.textContent = '-- / -- GB';
-            monitorUi.diskBar.style.width = '0%';
-          }
+          this.renderDisks(Array.isArray(metrics.disks) ? metrics.disks : []);
           monitorUi.processValue.textContent = metrics.processCount == null ? '进程 --' : `进程 ${metrics.processCount}`;
           monitorUi.uptimeValue.textContent = `运行 ${this.formatUptime(metrics.uptimeSeconds)}`;
         })
         .catch(() => {
           monitorUi.cpuValue.textContent = '--%';
-          monitorUi.ramValue.textContent = '-- / -- GB';
-          monitorUi.diskName.textContent = 'DISK';
-          monitorUi.diskValue.textContent = '-- / -- GB';
-          monitorUi.diskBar.style.width = '0%';
+          monitorUi.ramValue.textContent = '--%';
+          monitorUi.cpuBar.style.width = '0%';
+          monitorUi.ramBar.style.width = '0%';
+          this.renderDisks([]);
           monitorUi.processValue.textContent = '进程 --';
           monitorUi.uptimeValue.textContent = '运行 --';
         });

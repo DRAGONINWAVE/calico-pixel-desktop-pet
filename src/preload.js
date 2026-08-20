@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('petAPI', {
   getCursorPoint: () => ipcRenderer.invoke('pet:get-cursor-point'),
   getSystemMetrics: () => ipcRenderer.invoke('system:get-metrics'),
   getWorkArea: (point) => ipcRenderer.invoke('pet:get-work-area', point),
+  setMonitorHeight: (height) => ipcRenderer.invoke('pet:set-monitor-height', height),
   moveWindow: (position) => ipcRenderer.invoke('pet:move-window', position),
   dropWindow: (position) => ipcRenderer.invoke('pet:drop-window', position),
   showMenu: (point) => ipcRenderer.send('pet:show-menu', point),
